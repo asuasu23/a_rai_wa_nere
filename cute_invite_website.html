@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ไปหาไรทำกันมั้ย</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(to bottom right, #ffe4ec, #fff6f9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      text-align: center;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      width: 340px;
+    }
+
+    h1 { font-size: 20px; color: #444; }
+
+    #hint {
+      height: 24px;
+      margin-bottom: 10px;
+      color: #ff6f91;
+      font-size: 14px;
+    }
+
+    .buttons {
+      margin-top: 20px;
+      position: relative;
+      height: 120px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      position: absolute;
+      transition: all 0.2s ease;
+    }
+
+    #yesBtn { background-color: #ff8fab; color: white; left: 20%; top: 40px; }
+    #noBtn { background-color: #ddd; left: 55%; top: 40px; }
+
+    #message { margin-top: 20px; font-size: 18px; color: #ff6f91; }
+
+    #form {
+      display: none;
+      margin-top: 15px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .suggestions {
+      font-size: 12px;
+      color: #777;
+      margin-top: -6px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hint"></div>
+  <h1>ไปหาไรทำกันมั้ย</h1>
+
+  <div class="buttons">
+    <button id="yesBtn">ไป</button>
+    <button id="noBtn">ไม่ไป</button>
+  </div>
+
+  <div id="message"></div>
+
+  <form id="form">
+    <label>วัน:</label>
+    <input type="date" name="date" required>
+
+    <label>เวลา:</label>
+    <input type="time" name="time" required>
+
+    <label>อยากไปทำอะไร / ไปที่ไหน:</label>
+    <input type="text" name="place" placeholder="เช่น ไปปีนผา หรือกินข้าว" required>
+
+    <div class="suggestions">
+      เผื่อคิดไม่ออก: ปีนผา / กินข้าวว / เต้นแอโรบิค / เดินเล่นสวนรถไฟ / ไปเล่นเกมที่ห้อง / อื่นๆ
+    </div>
+
+    <button type="submit" style="position:static; width:100%; background:#ff8fab; color:white;">ส่งเลย 😳</button>
+    </form>
+  
+</div>
+
+<script>
+  const noBtn = document.getElementById('noBtn');
+  const yesBtn = document.getElementById('yesBtn');
+  const message = document.getElementById('message');
+  const hint = document.getElementById('hint');
+  const form = document.getElementById('form');
+
+  let noCount = 0;
+
+  const messages = [
+    "ไม่อยากไปจริงๆหรอ",
+    "🥺",
+    "ไปเถอะะะะ",
+    "I can do this all day",
+    "ยอมแพ้แล้วกดไปซะะ",
+    "อยากรู้ล่ะสิว่าข้อความต่อไปเป็นอะไร",
+    "พยายามเขานะ สู้ๆ 💪",
+    "เบื่อรึยังจ๊ะ",
+    "เราหมดมุกแล้ว 😢",
+    "วนลูปปปป"
+  ];
+
+  let nextTrigger = 3;
+  let step = 5;
+  let msgIndex = 0;
+
+  function resetCycle() {
+    nextTrigger = 3;
+    step = 5;
+  }
+
+  function moveNoButton() {
+    const container = document.querySelector('.buttons');
+
+    const maxX = container.clientWidth - noBtn.offsetWidth;
+    const maxY = container.clientHeight - noBtn.offsetHeight;
+
+    const currentLeft = noBtn.offsetLeft;
+    const currentTop = noBtn.offsetTop;
+
+    let randomX, randomY;
+    let distance;
+    let tries = 0;
+
+    do {
+      randomX = Math.random() * maxX;
+      randomY = Math.random() * maxY;
+      distance = Math.hypot(randomX - currentLeft, randomY - currentTop);
+      tries++;
+    } while (distance < 120 && tries < 30);
+
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
+
+    noCount++;
+
+    if (noCount === nextTrigger) {
+      hint.innerText = messages[msgIndex % messages.length];
+      msgIndex++;
+      nextTrigger += step;
+      step += 2;
+
+      if (msgIndex % messages.length === 0) {
+        resetCycle();
+        noCount = 0;
+      }
+    }
+  }
+
+  // Desktop
+  noBtn.addEventListener('mouseenter', moveNoButton);
+
+  // Mobile (touch)
+  noBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    moveNoButton();
+  });
+
+  yesBtn.addEventListener('click', () => {
+    message.innerText = "เย่ยยยยยยยย 😆";
+    form.style.display = 'block';
+    noBtn.style.display = 'none';
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    await fetch('https://formspree.io/f/xykleryq', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    // redirect to custom page
+    document.body.innerHTML = `
+      <div class="container">
+        <div style="text-align:center;">
+          <img src="https://framerusercontent.com/images/JS23ce6zu1nIZOYTUDGfdncno.gif?width=640&height=358" style="width:100%; border-radius:12px;" />
+        </div>
+      </div>
+    `;
+  });
+</script>
+
+</body>
+</html>
